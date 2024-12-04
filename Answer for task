@@ -1,0 +1,71 @@
+1. How many Namespaces exist on the system?
+   kubectl get namespaces
+2. How many pods exist in the kube-system namespace?
+   kubectl get pods -n kube-system
+3. Create a deployment
+  1. Create the finance namespace if it doesn't exist:kubectl create namespace finance
+  2. Create the deployment YAML file (beta-deployment.yaml):
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: beta
+      namespace: finance
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: beta
+      template:
+        metadata:
+          labels:
+            app: beta
+        spec:
+          containers:
+          - name: redis
+            image: redis
+            resources:
+              requests:
+                memory: "1Gi"
+                cpu: "500m"
+              limits:
+                memory: "2Gi"
+                cpu: "1"
+  3. Apply the YAML:kubectl apply -f beta-deployment.yaml
+4.How many Nodes exist on the system? -> kubectl get nodes
+5. Do you see any taints on the master?
+    kubectl describe node <master-node-name> | grep Taints
+6. Apply a label color=blue to the master node
+    kubectl label nodes <master-node-name> color=blue
+7. Create a deployment with Node Affinity:
+  1. Create the deployment YAML (blue-deployment.yaml):
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: blue
+      spec:
+        replicas: 3
+        selector:
+          matchLabels:
+            app: blue
+        template:
+          metadata:
+            labels:
+              app: blue
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                  - matchExpressions:
+                    - key: color
+                      operator: In
+                      values:
+                      - blue
+            containers:
+            - name: nginx
+              image: nginx
+Apply the YAML:
+  kubectl apply -f blue-deployment.yaml
+
+
+
